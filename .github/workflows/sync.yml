@@ -1,0 +1,40 @@
+name: Update dashboard KPI
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 07:00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kpi
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ambil data dari spreadsheet
+        env:
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          KPI_SECRETS: ${{ secrets.KPI_SECRETS }}
+        run: node sync/run.js
+
+      - name: Buat halaman
+        run: node sync/build.js
+
+      # GitHub Pages serves docs/ from main, so pushing the new data publishes it.
+      - name: Simpan data terbaru
+        run: |
+          git config user.name "kpi-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          git diff --cached --quiet || git commit -m "Update data KPI $(TZ=Asia/Jakarta date '+%d %b %Y %H:%M') WIB"
+          git push
