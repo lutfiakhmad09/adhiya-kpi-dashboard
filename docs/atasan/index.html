@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard KPI Tim Marketing · Adhiya Travel</title>
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<style>
+/* Theme tokens the dashboard pages were written against, light and dark. */
+:root {
+  --font-anthropic-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-anthropic-serif: "Source Serif 4", Georgia, serif;
+  --cds-gap-xs: .375rem; --cds-gap-sm: .625rem; --cds-gap-md: 1rem; --cds-gap-lg: 1.5rem;
+  --cds-pad-xs: .3rem; --cds-pad-sm: .5rem; --cds-pad-md: .85rem; --cds-pad-lg: 1.15rem; --cds-pad-xl: 1.75rem;
+  --cds-radius: 8px;
+  --cds-font-size-caption: .8125rem; --cds-font-size-body: .9375rem; --cds-font-size-title: 1.5rem;
+  --cds-font-weight-medium: 600;
+  --cds-dur-slow: 320ms; --cds-ease-out: cubic-bezier(.2, .7, .2, 1);
+  --color-bg: #f7f3ef; --color-fg: #23181a; --color-fg-muted: #6f6265;
+  --color-panel: #ffffff; --color-border-line: #e8dfda;
+  --color-ok: #2f7d4f; --color-warn: #b07a12; --color-bad: #b4282e;
+  --cds-chart-grid: #ece4df; --cds-chart-muted: #b9adaa;
+  --cds-surface-popover: #ffffff; --cds-border: #e2d8d3; --cds-text-secondary: #6f6265;
+  --cds-shadow-popover: 0 6px 20px rgba(35, 24, 26, .12);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #171213; --color-fg: #f2ebe8; --color-fg-muted: #a8999a;
+    --color-panel: #221b1c; --color-border-line: #382d2e;
+    --color-ok: #5cbf86; --color-warn: #e0ac45; --color-bad: #ef6b6f;
+    --cds-chart-grid: #342a2b; --cds-chart-muted: #6c5f60;
+    --cds-surface-popover: #2a2223; --cds-border: #3d3233; --cds-text-secondary: #a8999a;
+    --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); -webkit-font-smoothing: antialiased; }
+#app { max-width: 1180px; margin: 0 auto; padding: 16px 16px 32px; }
+button { font: inherit; }
+.dash-skeleton { color: transparent !important; border-radius: 6px; background: linear-gradient(90deg, rgba(127,127,127,.12), rgba(127,127,127,.22), rgba(127,127,127,.12)) 0 0 / 200% 100%; animation: sk 1.4s linear infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+.kunci-bar { display: flex; justify-content: center; margin-top: .25rem; }
+.kunci-bar button { background: none; border: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); text-decoration: underline; cursor: pointer; }
+
+/* Lock screen */
+#gerbang { min-height: 100vh; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 1.5px) 0 0 / 18px 18px,
+              radial-gradient(120% 140% at 100% 0%, #a3162f 0%, #7a0b1e 55%, #4f0613 100%); }
+.gb-card { width: min(100%, 24rem); background: rgba(255,255,255,.97); color: #2a1216; border-radius: 16px; padding: 2rem 1.75rem 1.5rem; box-shadow: 0 24px 60px rgba(40, 0, 8, .45); display: flex; flex-direction: column; gap: .9rem; color-scheme: light; }
+.gb-card img { width: 170px; height: auto; display: block; }
+.gb-eyebrow { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: #9a6b12; font-weight: 600; margin-top: .4rem; }
+.gb-card h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.85rem; line-height: 1.1; margin: 0; }
+.gb-card p { margin: 0; font-size: .875rem; color: #6f5a5d; line-height: 1.5; }
+.gb-card label { font-size: .8125rem; font-weight: 600; display: flex; flex-direction: column; gap: .35rem; }
+.gb-card input[type=password] { font: inherit; font-size: 1rem; padding: .7rem .8rem; border-radius: 10px; border: 1px solid #d9c9c6; background: #fff; color: #2a1216; }
+.gb-card input[type=password]:focus { outline: 2px solid #d9b45a; outline-offset: 1px; border-color: #7a0b1e; }
+.gb-ingat { flex-direction: row !important; align-items: center; font-weight: 400 !important; color: #6f5a5d; }
+.gb-card button { font-weight: 600; font-size: 1rem; padding: .75rem; border: 0; border-radius: 10px; background: #7a0b1e; color: #fff; cursor: pointer; }
+.gb-card button:hover { background: #8c1026; }
+.gb-card button:disabled { opacity: .7; cursor: progress; }
+.gb-pesan { min-height: 1.2em; font-size: .8125rem !important; color: #b4282e !important; }
+</style>
+<script>
+// Minimal stand-in for the dashboard runtime the pages were written for: named data sources,
+// derived calcs, URL params and an onData hook. Data arrives decrypted from data/<slug>.json.
+window.dash = (() => {
+  const sources = {};
+  const calcs = [];
+  const listeners = [];
+  const params = Object.fromEntries(new URLSearchParams(location.search));
+  const fire = () => listeners.forEach((fn) => fn());
+  const sync = () => history.replaceState(null, '', '?' + new URLSearchParams(params) + location.hash);
+  return {
+    calc(name, def) { calcs.push([name, def]); },
+    data(name) { return sources[name] || { status: 'loading', data: [] }; },
+    onData(fn) { listeners.push(fn); if (sources.kpi) fn(); },
+    params() { return { ...params }; },
+    setParams(p) {
+      Object.entries(p).forEach(([k, v]) => { if (v == null || v === '') delete params[k]; else params[k] = String(v); });
+      sync(); fire();
+    },
+    setLink(id) { history.replaceState(null, '', location.pathname + location.search + (id ? '#' + id : '')); },
+    _load(d) {
+      sources.kpi = { status: 'ok', data: d.kpi };
+      const m = d.mingguan;
+      const rows = Array.isArray(m) ? m : m.rows;
+      sources.mingguan = rows.length ? { status: 'ok', data: rows, columns: Array.isArray(m) ? undefined : m.columns } : { status: 'missing', data: [] };
+      calcs.forEach(([name, def]) => {
+        sources[name] = { status: 'ok', data: def.fn(...def.inputs.map((i) => sources[i].data)) };
+      });
+      fire();
+    },
+  };
+})();
+</script>
+</head>
+<body>
+<div id="gerbang">
+  <form class="gb-card" id="gb-form" autocomplete="on">
+    <img src="../logo.png" alt="Adhiya Travel">
+    <div class="gb-eyebrow">Dashboard KPI Marketing</div>
+    <h1>Tim Marketing</h1>
+    <p>Dashboard khusus atasan, berisi KPI seluruh tim. Masukkan password atasan.</p>
+    <input type="text" name="username" value="atasan" autocomplete="username" hidden>
+    <label>Password
+      <input type="password" id="gb-pw" autocomplete="current-password" required autofocus>
+    </label>
+    <label class="gb-ingat"><input type="checkbox" id="gb-ingat" checked> Ingat di perangkat ini</label>
+    <button type="submit" id="gb-btn">Buka dashboard</button>
+    <p class="gb-pesan" id="gb-pesan" role="alert"></p>
+  </form>
+</div>
+<main id="app" hidden>
+<style>
+/* Manager view: same Adhiya maroon hero as the personal dashboards, plus a person picker that switches between the team summary and one person's detail. */
+.tk {
+  --tk-maroon: #7a0b1e;
+  --tk-maroon-2: #a3162f;
+  --tk-gold: #d9b45a;
+  --tk-brand: color-mix(in srgb, #8c1026 78%, var(--color-fg));
+  --tk-brand-soft: color-mix(in srgb, #8c1026 10%, transparent);
+  font-family: var(--font-anthropic-sans);
+  display: flex; flex-direction: column; gap: var(--cds-gap-lg);
+}
+.tk-hero {
+  position: relative; overflow: hidden; color: #fff;
+  border-radius: calc(var(--cds-radius) * 2);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.09) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    radial-gradient(120% 140% at 100% 0%, var(--tk-maroon-2) 0%, var(--tk-maroon) 55%, #4f0613 100%);
+  padding: var(--cds-pad-xl);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--cds-gap-lg); align-items: center;
+}
+.tk-hero::after {
+  content: ""; position: absolute; right: -60px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%;
+  border: 1px solid rgba(217,180,90,.35); box-shadow: 0 0 0 22px rgba(217,180,90,.06), 0 0 0 44px rgba(217,180,90,.04);
+  pointer-events: none;
+}
+.tk-hero-main { display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; position: relative; z-index: 1; }
+.tk-logo { width: min(210px, 60%); height: auto; filter: brightness(0) invert(1); opacity: .95; display: block; }
+.tk-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .14em; text-transform: uppercase; color: var(--tk-gold); margin-top: var(--cds-gap-sm); }
+.tk-hero h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1.05; margin: 0; text-wrap: balance; }
+.tk-row { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
+.tk-chip { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .65rem; border-radius: 999px; font-size: var(--cds-font-size-caption); background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); }
+.tk-chip.gold { border-color: rgba(217,180,90,.55); color: #f6e6bd; }
+.tk-picker { display: inline-flex; align-items: center; gap: .5rem; padding: .3rem .4rem .3rem .8rem; border-radius: 999px; background: rgba(255,255,255,.96); color: #4f0613; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
+.tk-picker select { font: inherit; font-size: var(--cds-font-size-body); color: #4f0613; background: transparent; border: 0; padding: .15rem 1.6rem .15rem .2rem; border-radius: 999px; cursor: pointer; appearance: none; color-scheme: light;
+  background-image: linear-gradient(45deg, transparent 50%, #7a0b1e 50%), linear-gradient(135deg, #7a0b1e 50%, transparent 50%);
+  background-position: calc(100% - 12px) 55%, calc(100% - 7px) 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+.tk-picker select:focus-visible { outline: 2px solid var(--tk-gold); outline-offset: 2px; }
+.tk-take { margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-body); line-height: 1.55; max-width: 62ch; color: rgba(255,255,255,.88); }
+.tk-take b { color: #fff; font-weight: var(--cds-font-weight-medium); }
+.tk-ring { position: relative; z-index: 1; width: 9.5rem; display: flex; flex-direction: column; align-items: center; gap: var(--cds-gap-xs); }
+.tk-ring svg { width: 9.5rem; height: 9.5rem; display: block; }
+.tk-ring-val { position: absolute; top: 0; left: 0; width: 9.5rem; height: 9.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.tk-ring-val .num { font-family: var(--font-anthropic-serif); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.tk-ring-val small { font-size: var(--cds-font-size-caption); color: rgba(255,255,255,.75); margin-top: .2rem; }
+.tk-ring-cap { font-size: var(--cds-font-size-caption); color: rgba(255,255,255,.75); text-align: center; }
+@media (max-width: 560px) { .tk-hero { grid-template-columns: 1fr; } .tk-ring { justify-self: start; flex-direction: row; width: auto; } .tk-ring svg, .tk-ring-val { width: 6.5rem; height: 6.5rem; } .tk-ring-val .num { font-size: 1.5rem; } .tk-ring-cap { text-align: left; max-width: 12rem; } }
+
+.tk-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); }
+.tk-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) * 1.5); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: .4rem; }
+.tk-tile .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; align-items: center; gap: .4rem; }
+.tk-tile .num { font-family: var(--font-anthropic-serif); font-size: 2.1rem; line-height: 1; font-variant-numeric: tabular-nums; min-height: 1em; }
+.tk-tile.s-Hijau .num { color: var(--color-ok); } .tk-tile.s-Kuning .num { color: var(--color-warn); } .tk-tile.s-Merah .num { color: var(--color-bad); } .tk-tile.s-Belum .num { color: var(--color-fg-muted); }
+.tk-share { height: .3rem; border-radius: 999px; background: var(--cds-chart-grid); overflow: hidden; }
+.tk-share span { display: block; height: 100%; width: 0; border-radius: 999px; transition: width var(--cds-dur-slow) var(--cds-ease-out); }
+.tk-tile.s-Hijau .tk-share span { background: var(--color-ok); } .tk-tile.s-Kuning .tk-share span { background: var(--color-warn); } .tk-tile.s-Merah .tk-share span { background: var(--color-bad); } .tk-tile.s-Belum .tk-share span { background: var(--cds-chart-muted); }
+.tk-tile .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tk-dot { width: .5rem; height: .5rem; border-radius: 50%; display: inline-block; flex: none; }
+.s-Hijau .tk-dot, .tk-dot.s-Hijau { background: var(--color-ok); } .s-Kuning .tk-dot, .tk-dot.s-Kuning { background: var(--color-warn); } .s-Merah .tk-dot, .tk-dot.s-Merah { background: var(--color-bad); } .s-Belum .tk-dot, .tk-dot.s-Belum { background: var(--cds-chart-muted); }
+
+.tk-section { display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+.tk-section-head { display: flex; flex-direction: column; gap: .2rem; }
+.tk-section-head .eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .12em; text-transform: uppercase; color: var(--tk-brand); font-weight: var(--cds-font-weight-medium); }
+.tk-section-head h2 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+.tk-section-head .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; max-width: 75ch; }
+.tk-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-lg); align-items: start; }
+
+.tk-panel { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) * 1.5); min-width: 0; overflow: hidden; }
+.tk-people { display: flex; flex-direction: column; min-height: 12rem; }
+.tk-person { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 2rem minmax(0, 1fr) 4rem; gap: .2rem var(--cds-gap-sm); align-items: center; padding: var(--cds-pad-md) var(--cds-pad-lg); border-bottom: 1px solid var(--color-border-line); transition: background var(--cds-dur-slow); }
+.tk-person:last-child { border-bottom: 0; }
+.tk-person:hover { background: var(--tk-brand-soft); }
+.tk-person:focus-visible { outline: 2px solid var(--tk-brand); outline-offset: -2px; }
+.tk-rank { font-family: var(--font-anthropic-serif); font-size: 1.2rem; color: var(--color-fg-muted); text-align: center; grid-row: span 2; }
+.tk-who { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+.tk-who b { font-weight: var(--cds-font-weight-medium); white-space: nowrap; }
+.tk-who small { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-score { font-family: var(--font-anthropic-serif); font-size: 1.4rem; text-align: right; font-variant-numeric: tabular-nums; grid-row: span 2; }
+.tk-score.s-Hijau { color: var(--color-ok); } .tk-score.s-Kuning { color: var(--color-warn); } .tk-score.s-Merah { color: var(--color-bad); } .tk-score.s-Belum { color: var(--color-fg-muted); }
+.tk-bar { display: flex; height: .45rem; border-radius: 999px; overflow: hidden; background: var(--cds-chart-grid); gap: 2px; }
+.tk-bar span { display: block; height: 100%; }
+.tk-mix { display: flex; flex-wrap: wrap; gap: .1rem .7rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); grid-column: 2; }
+.tk-mix span { display: inline-flex; align-items: center; gap: .25rem; }
+.tk-person.tk-hold { opacity: .6; background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--color-fg-muted) 6%, transparent) 8px 16px); }
+.tk-person.tk-hold .tk-rank, .tk-person.tk-hold .tk-score { grid-row: auto; }
+
+.tk-attn { list-style: none; margin: 0; padding: 0; max-height: 34rem; overflow: auto; min-height: 12rem; }
+.tk-attn li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--cds-gap-sm); align-items: center; padding: var(--cds-pad-sm) var(--cds-pad-lg); border-bottom: 1px solid var(--color-border-line); }
+.tk-attn li:last-child { border-bottom: 0; }
+.tk-attn .k { font-size: var(--cds-font-size-body); min-width: 0; }
+.tk-attn .k small { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.tk-attn .p { text-align: right; font-variant-numeric: tabular-nums; }
+.tk-attn .p b { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.15rem; }
+.tk-attn .p.s-Merah b { color: var(--color-bad); } .tk-attn .p.s-Kuning b { color: var(--color-warn); }
+.tk-attn .p small { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.tk-link { all: unset; cursor: pointer; color: var(--tk-brand); font-weight: var(--cds-font-weight-medium); }
+.tk-link:hover { text-decoration: underline; }
+.tk-link:focus-visible { outline: 2px solid var(--tk-brand); border-radius: 2px; }
+
+.tk-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17.5rem), 1fr)); gap: var(--cds-gap-md); min-height: 10rem; }
+.tk-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) * 1.5); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: .55rem; min-width: 0; }
+.tk-card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-sm); }
+.tk-card h3 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); min-width: 0; line-height: 1.35; }
+.tk-pill { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; font-size: var(--cds-font-size-caption); flex: none; padding: .15rem .55rem; border-radius: 999px; }
+.tk-pill.s-Hijau { color: var(--color-ok); background: color-mix(in srgb, var(--color-ok) 13%, transparent); }
+.tk-pill.s-Kuning { color: var(--color-warn); background: color-mix(in srgb, var(--color-warn) 15%, transparent); }
+.tk-pill.s-Merah { color: var(--color-bad); background: color-mix(in srgb, var(--color-bad) 13%, transparent); }
+.tk-pill.s-Belum { color: var(--color-fg-muted); background: color-mix(in srgb, var(--color-fg-muted) 12%, transparent); }
+.tk-card .big { font-family: var(--font-anthropic-serif); font-size: 2.3rem; font-weight: 400; font-variant-numeric: tabular-nums; line-height: 1; }
+.tk-card .big.s-Hijau { color: var(--color-ok); } .tk-card .big.s-Kuning { color: var(--color-warn); } .tk-card .big.s-Merah { color: var(--color-bad); } .tk-card .big.s-Belum { color: var(--color-fg-muted); }
+.tk-progress { height: .45rem; border-radius: 999px; background: var(--cds-chart-grid); overflow: hidden; }
+.tk-progress span { display: block; height: 100%; border-radius: 999px; }
+.tk-card .nodata { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tk-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cds-gap-xs); padding-top: .5rem; border-top: 1px dashed var(--color-border-line); }
+.tk-facts div { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.tk-facts span { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tk-facts b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tk-spark { position: relative; height: 48px; }
+.tk-spark svg { display: block; }
+.tk-spark .cap { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tk-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 3; font-variant-numeric: tabular-nums; }
+.tk-tip .d { color: var(--cds-text-secondary); }
+
+.tk-tablebox { overflow: auto; max-height: 30rem; }
+.tk-table { border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; min-width: 100%; }
+.tk-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; min-width: 6.5rem; }
+.tk-table th:first-child, .tk-table td:first-child { text-align: left; position: sticky; left: 0; background: var(--color-panel); min-width: 7rem; z-index: 1; }
+.tk-table th:first-child { z-index: 2; }
+.tk-table td { padding: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); text-align: right; white-space: nowrap; }
+.tk-table td:first-child { font-weight: var(--cds-font-weight-medium); }
+.tk-table tbody tr:last-child td { border-bottom: 0; }
+.tk-table td.blank { color: var(--color-fg-muted); }
+.tk-foot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-align: center; padding-block: var(--cds-pad-sm); }
+.tk-fail { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); grid-column: 1 / -1; padding: var(--cds-pad-lg); }
+.tk-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+.tk-empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="tk">
+  <header class="tk-hero" id="ringkasan">
+    <div class="tk-hero-main">
+      <img class="tk-logo" src="../logo.png" alt="Adhiya Travel">
+      <div class="tk-eyebrow">Dashboard KPI Tim Marketing</div>
+      <h1 class="tk-title">Ringkasan tim</h1>
+      <div class="tk-row">
+        <label class="tk-picker" for="tk-orang">Lihat
+          <select id="tk-orang"><option value="">Semua orang</option></select>
+        </label>
+        <label class="tk-picker" for="tk-periode">Periode
+          <select id="tk-periode" aria-label="Pilih periode bulan"></select>
+        </label>
+        <span class="tk-chip gold tk-range" hidden></span>
+        <span class="tk-chip tk-divisi" hidden></span>
+        <span class="tk-chip tk-updated" hidden>Terakhir diperbarui <span class="tk-updated-at" data-source="kpi" data-field="diperbarui">—</span></span>
+      </div>
+      <p class="tk-take"></p>
+    </div>
+    <div class="tk-ring" id="skor">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"></circle>
+        <circle class="tk-ring-arc" cx="60" cy="60" r="50" fill="none" stroke="#d9b45a" stroke-width="10" stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="0 314.16"></circle>
+      </svg>
+      <div class="tk-ring-val"><span class="num dash-skeleton" data-source="skor" data-field="skor">—</span><small class="tk-ring-lbl">skor tim</small></div>
+      <div class="tk-ring-cap">Rata-rata % capaian KPI yang sudah ada data, tiap KPI maks. 100%</div>
+    </div>
+  </header>
+
+  <section class="tk-tiles" id="status" aria-label="Jumlah KPI per status">
+    <div class="tk-tile s-Hijau"><span class="lbl"><i class="tk-dot"></i>Hijau · tercapai</span><span class="num dash-skeleton" data-source="ringkasan" data-field="jumlah" data-status="Hijau">—</span><div class="tk-share"><span></span></div><span class="note">≥100% target</span></div>
+    <div class="tk-tile s-Kuning"><span class="lbl"><i class="tk-dot"></i>Kuning · hampir</span><span class="num dash-skeleton" data-source="ringkasan" data-field="jumlah" data-status="Kuning">—</span><div class="tk-share"><span></span></div><span class="note">80–99% target</span></div>
+    <div class="tk-tile s-Merah"><span class="lbl"><i class="tk-dot"></i>Merah · perlu dikejar</span><span class="num dash-skeleton" data-source="ringkasan" data-field="jumlah" data-status="Merah">—</span><div class="tk-share"><span></span></div><span class="note">Di bawah 80%</span></div>
+    <div class="tk-tile s-Belum"><span class="lbl"><i class="tk-dot"></i>Belum ada data</span><span class="num dash-skeleton" data-source="ringkasan" data-field="jumlah" data-status="Belum ada data">—</span><div class="tk-share"><span></span></div><span class="note">Belum diisi / target kosong</span></div>
+  </section>
+
+  <div id="tk-tim">
+    <div class="tk-grid2">
+      <section class="tk-section" id="peringkat">
+        <div class="tk-section-head">
+          <span class="eyebrow">Per orang</span>
+          <h2>Skor tim</h2>
+          <p class="note">Diurutkan dari skor tertinggi. Bar menunjukkan komposisi status KPI. Klik nama untuk melihat detailnya.</p>
+        </div>
+        <div class="tk-panel"><div class="tk-people dash-skeleton" data-source="skor"></div></div>
+      </section>
+      <section class="tk-section" id="perlu-perhatian">
+        <div class="tk-section-head">
+          <span class="eyebrow">Prioritas</span>
+          <h2>Perlu perhatian</h2>
+          <p class="note">Semua KPI merah dan kuning di tim, dari capaian terendah.</p>
+        </div>
+        <div class="tk-panel"><ul class="tk-attn dash-skeleton" data-source="kpi"></ul></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="tk-detail" hidden>
+    <section class="tk-section" id="kpi-orang">
+      <div class="tk-section-head">
+        <span class="eyebrow">Capaian bulan ini</span>
+        <h2 class="tk-detail-title">KPI</h2>
+        <p class="note">Diurutkan dari yang paling perlu dikejar. Untuk KPI arah turun (SLA, CPR, CPA, Frequency), capaian = target ÷ aktual. Grafik kecil = isian per minggu.</p>
+      </div>
+      <div class="tk-cards" data-source="kpi mingguan"></div>
+    </section>
+    <section class="tk-section" id="isian-mingguan" style="margin-top: var(--cds-gap-lg)">
+      <div class="tk-section-head">
+        <span class="eyebrow">Riwayat</span>
+        <h2>Isian mingguan</h2>
+        <p class="note">Angka dari sheet input orang ini, minggu terbaru di atas.</p>
+      </div>
+      <div class="tk-panel"><div class="tk-tablebox" data-source="mingguan"><table class="tk-table"><thead><tr></tr></thead><tbody></tbody></table></div></div>
+    </section>
+  </div>
+
+  <p class="tk-foot">Adhiya Travel · Jagonya Umroh Plus · data dari Report KPI Marketing, diperbarui otomatis setiap pagi · dashboard ini khusus untuk atasan</p>
+</div>
+
+<script>
+dash.calc('ringkasan', {
+  title: 'Jumlah KPI per status',
+  description: 'Per periode bulan: jumlah KPI per status (Hijau, Kuning, Merah, Belum ada data) per orang, dan untuk seluruh tim (nama "Semua"). Anggota nonaktif (resign, belum ada pengganti) tidak dihitung di "Semua".',
+  inputs: ['kpi'],
+  fn: (kpi) => {
+    const NONAKTIF = ['Nindy'];
+    const kat = (s) => (/HIJAU/i.test(s) ? 'Hijau' : /KUNING/i.test(s) ? 'Kuning' : /MERAH/i.test(s) ? 'Merah' : 'Belum ada data');
+    const names = ['Semua', ...new Set(kpi.map((r) => r.nama))];
+    const out = [];
+    [...new Set(kpi.map((r) => r.periode))].forEach((periode) => names.forEach((nama) => ['Hijau', 'Kuning', 'Merah', 'Belum ada data'].forEach((status) => {
+      out.push({ periode, nama, status, jumlah: kpi.filter((r) => r.periode === periode && (nama === 'Semua' ? !NONAKTIF.includes(r.nama) : r.nama === nama) && kat(r.status) === status).length });
+    })));
+    return out;
+  },
+});
+
+dash.calc('skor', {
+  title: 'Skor rata-rata',
+  description: 'Per periode bulan: rata-rata % capaian KPI yang sudah berstatus warna, tiap KPI dibatasi 100%, per orang dan untuk seluruh tim (nama "Semua"). Anggota nonaktif (resign, belum ada pengganti) tidak dihitung di skor tim.',
+  inputs: ['kpi'],
+  fn: (kpi) => {
+    const NONAKTIF = ['Nindy'];
+    const names = ['Semua', ...new Set(kpi.map((r) => r.nama))];
+    return [...new Set(kpi.map((r) => r.periode))].flatMap((periode) => names.map((nama) => {
+      const rows = kpi.filter((r) => r.periode === periode && (nama === 'Semua' ? !NONAKTIF.includes(r.nama) : r.nama === nama));
+      const ada = rows.filter((r) => /HIJAU|KUNING|MERAH/i.test(r.status) && r.capaian_pct != null);
+      const skor = ada.length ? Math.round((ada.reduce((s, r) => s + Math.min(r.capaian_pct, 100), 0) / ada.length) * 10) / 10 : null;
+      return { periode, nama, divisi: nama === 'Semua' ? '' : (rows[0] || {}).divisi || '', aktif: !NONAKTIF.includes(nama), skor, kpi_terukur: ada.length, kpi_total: rows.length };
+    }));
+  },
+});
+
+(() => {
+  const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const BLN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
+  const nf1 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 });
+  const nf0 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+  const kat = (s) => (/HIJAU/i.test(s) ? 'Hijau' : /KUNING/i.test(s) ? 'Kuning' : /MERAH/i.test(s) ? 'Merah' : 'Belum');
+  // Members on hold (resigned, no replacement yet): still selectable, never counted in team figures.
+  const NONAKTIF = ['Nindy'];
+  const aktif = (nama) => !NONAKTIF.includes(nama);
+  const rank = { Merah: 0, Kuning: 1, Hijau: 2, Belum: 3 };
+  const color = { Hijau: 'var(--color-ok)', Kuning: 'var(--color-warn)', Merah: 'var(--color-bad)', Belum: 'var(--cds-chart-muted)' };
+  const skorKat = (v) => (v == null ? 'Belum' : v >= 100 ? 'Hijau' : v >= 80 ? 'Kuning' : 'Merah');
+  const fmtVal = (v, satuan) => {
+    if (v == null) return '—';
+    if (satuan === '%') return nf.format(v) + '%';
+    if (satuan === 'Rp') return 'Rp' + nf0.format(v);
+    if (satuan === 'Hari') return nf.format(v) + ' hari';
+    return nf.format(v);
+  };
+  const fmtDate = (iso) => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${BLN[m - 1]} ${y}`; };
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const failed = (s) => s === 'error' || s === 'declined' || s === 'missing';
+  let CUR = '';
+  let BERJALAN = true;
+  const where = (obj) => Object.entries({ periode: CUR, ...obj }).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  const mark = (e, source, field, w) => { e.dataset.source = source; e.dataset.field = field; if (w) e.dataset.where = w; return e; };
+  const matches = (kpiName, kolom) => kpiName === kolom || kpiName.startsWith(kolom) || kolom.startsWith(kpiName);
+  const brand = () => getComputedStyle(document.querySelector('.tk')).getPropertyValue('--tk-brand').trim() || 'currentColor';
+
+  const select = document.getElementById('tk-orang');
+  const orang = () => dash.params().orang || '';
+  const pick = (nama) => { dash.setParams({ orang: nama || null }); dash.setLink(nama ? 'kpi-orang' : 'ringkasan'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  select.addEventListener('change', () => pick(select.value));
+
+  function drawHeader(k, sk) {
+    const who = orang();
+    const range = document.querySelector('.tk-range');
+    const divisi = document.querySelector('.tk-divisi');
+    document.querySelector('.tk-title').textContent = who || 'Ringkasan tim';
+    if (k.status === 'ok') {
+      const names = [...new Set(k.data.map((r) => r.nama))];
+      const cur = select.value;
+      select.replaceChildren(new Option('Semua orang', ''), ...names.map((n) => new Option(aktif(n) ? n : n + ' (nonaktif)', n)));
+      select.value = names.includes(who) ? who : '';
+      if (cur !== select.value) select.blur();
+      const p = CUR;
+      const m = p.match(/^(\S+)\s+(\d{4})$/);
+      const bi = m ? BULAN.indexOf(m[1]) : -1;
+      range.hidden = bi < 0;
+      range.textContent = bi >= 0 ? `26 ${BLN[bi === 0 ? 11 : bi - 1]} – 25 ${BLN[bi]} ${m[2]}` : '';
+      const row = who ? k.data.find((r) => r.nama === who) : null;
+      divisi.hidden = !row;
+      divisi.textContent = row ? row.divisi : '';
+      const upd = document.querySelector('.tk-updated');
+      const t = (k.data[0] || {}).diperbarui ? new Date(k.data[0].diperbarui) : null;
+      upd.hidden = !t || isNaN(t);
+      upd.firstChild.textContent = BERJALAN ? 'Terakhir diperbarui ' : 'Rekap terakhir ';
+      document.querySelector('.tk-updated-at').dataset.where = where({ no: (k.data[0] || {}).no ?? '' });
+      if (!upd.hidden) document.querySelector('.tk-updated-at').textContent = t.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    } else {
+      range.hidden = true; divisi.hidden = true;
+    }
+
+    const key = who || 'Semua';
+    const num = document.querySelector('.tk-ring-val .num');
+    const arc = document.querySelector('.tk-ring-arc');
+    document.querySelector('.tk-ring-lbl').textContent = who ? 'skor ' + who : 'skor tim';
+    num.dataset.where = where({ nama: key });
+    if (sk.status === 'ok') {
+      num.classList.remove('dash-skeleton');
+      const v = (sk.data.find((r) => r.nama === key) || {}).skor;
+      num.textContent = v == null ? '—' : nf1.format(v) + '%';
+      arc.setAttribute('stroke-dasharray', `${((v ?? 0) / 100) * 2 * Math.PI * 50} ${2 * Math.PI * 50}`);
+    } else { if (failed(sk.status)) num.classList.remove('dash-skeleton'); num.textContent = '—'; arc.setAttribute('stroke-dasharray', '0 314.16'); }
+  }
+
+  function drawTake(k, sk, rs) {
+    const take = document.querySelector('.tk-take');
+    take.replaceChildren();
+    if (k.status !== 'ok' || rs.status !== 'ok') return;
+    const who = orang();
+    const key = who || 'Semua';
+    const n = (status) => {
+      const r = rs.data.find((x) => x.nama === key && x.status === status);
+      return mark(el('b', null, r ? nf0.format(r.jumlah) : '—'), 'ringkasan', 'jumlah', where({ nama: key, status }));
+    };
+    const kapan = BERJALAN ? 'Bulan ini ' : 'Di periode ' + CUR + ', ';
+    take.append(who ? kapan + who + ' punya ' : kapan + 'tim punya ', n('Hijau'), ' KPI hijau, ', n('Kuning'), ' kuning dan ', n('Merah'), ' merah. ');
+    if (!who && sk.status === 'ok') {
+      const people = sk.data.filter((r) => r.nama !== 'Semua' && aktif(r.nama) && r.skor != null).sort((a, b) => b.skor - a.skor);
+      if (people.length > 1) {
+        const top = people[0], low = people[people.length - 1];
+        take.append('Skor tertinggi ', el('b', null, top.nama), ' (', mark(el('b', null, nf1.format(top.skor) + '%'), 'skor', 'skor', where({ nama: top.nama })), '), terendah ', el('b', null, low.nama), ' (', mark(el('b', null, nf1.format(low.skor) + '%'), 'skor', 'skor', where({ nama: low.nama })), ').');
+      }
+      if (NONAKTIF.length) take.append(' ' + NONAKTIF.join(', ') + ' tidak dihitung (resign, belum ada pengganti).');
+    } else if (who && !aktif(who)) {
+      take.append(who + ' sedang nonaktif (resign, belum ada pengganti), jadi KPI-nya tidak dihitung dalam skor tim.');
+    } else if (who) {
+      const low = k.data.filter((r) => r.nama === who && kat(r.status) === 'Merah' && r.capaian_pct != null).sort((a, b) => a.capaian_pct - b.capaian_pct)[0];
+      if (low) take.append('Fokus utama: ', el('b', null, low.kpi), ', baru ', mark(el('b', null, nf1.format(low.capaian_pct) + '%'), 'kpi', 'capaian_pct', where({ no: low.no })), ' dari target.');
+    }
+  }
+
+  function drawTiles(rs) {
+    const key = orang() || 'Semua';
+    const rows = rs.status === 'ok' ? rs.data.filter((r) => r.nama === key) : [];
+    const total = rows.reduce((a, r) => a + r.jumlah, 0);
+    document.querySelectorAll('.tk-tile .num').forEach((n) => {
+      const st = n.dataset.status;
+      n.dataset.where = where({ nama: key, status: st });
+      if (rs.status !== 'ok') { if (failed(rs.status)) n.classList.remove('dash-skeleton'); n.textContent = '—'; return; }
+      n.classList.remove('dash-skeleton');
+      const r = rows.find((x) => x.status === st);
+      n.textContent = r ? nf0.format(r.jumlah) : '—';
+      n.closest('.tk-tile').querySelector('.tk-share span').style.width = total && r ? (r.jumlah / total) * 100 + '%' : '0';
+    });
+  }
+
+  function drawPeople(sk, rs) {
+    const box = document.querySelector('.tk-people');
+    if (sk.status !== 'ok' || rs.status !== 'ok') {
+      if (failed(sk.status) || failed(rs.status)) { box.classList.remove('dash-skeleton'); box.replaceChildren(el('div', 'tk-fail', 'Gagal memuat')); }
+      else { box.classList.add('dash-skeleton'); box.replaceChildren(); }
+      return;
+    }
+    box.classList.remove('dash-skeleton');
+    const people = sk.data.filter((r) => r.nama !== 'Semua' && aktif(r.nama)).sort((a, b) => (b.skor ?? -1) - (a.skor ?? -1));
+    const hold = sk.data.filter((r) => r.nama !== 'Semua' && !aktif(r.nama));
+    const holdRows = hold.map((p) => {
+      const btn = el('button', 'tk-person tk-hold');
+      btn.type = 'button';
+      btn.addEventListener('click', () => pick(p.nama));
+      const who = el('div', 'tk-who'); who.append(el('b', null, p.nama), el('small', null, 'Nonaktif · resign, belum ada pengganti · tidak dihitung'));
+      btn.append(el('div', 'tk-rank', '–'), who, el('div', 'tk-score s-Belum', '—'));
+      return btn;
+    });
+    box.replaceChildren(...people.map((p, i) => {
+      const btn = el('button', 'tk-person');
+      btn.type = 'button';
+      btn.addEventListener('click', () => pick(p.nama));
+      const counts = Object.fromEntries(rs.data.filter((r) => r.nama === p.nama).map((r) => [r.status, r.jumlah]));
+      const who = el('div', 'tk-who'); who.append(el('b', null, p.nama), el('small', null, p.divisi));
+      const score = mark(el('div', 'tk-score s-' + skorKat(p.skor), p.skor == null ? '—' : nf1.format(p.skor) + '%'), 'skor', 'skor', where({ nama: p.nama }));
+      const bar = el('div', 'tk-bar');
+      [['Hijau', 'Hijau'], ['Kuning', 'Kuning'], ['Merah', 'Merah'], ['Belum ada data', 'Belum']].forEach(([st, k]) => {
+        if (!counts[st]) return;
+        const s = el('span'); s.style.flex = String(counts[st]); s.style.background = color[k]; bar.append(s);
+      });
+      const mix = el('div', 'tk-mix');
+      [['Hijau', 'hijau'], ['Kuning', 'kuning'], ['Merah', 'merah'], ['Belum ada data', 'belum ada data']].forEach(([st, label]) => {
+        if (!counts[st]) return;
+        const s = el('span'); s.append(el('i', 'tk-dot s-' + (st === 'Belum ada data' ? 'Belum' : st)), `${counts[st]} ${label}`); mix.append(s);
+      });
+      const mid = el('div'); mid.style.display = 'flex'; mid.style.flexDirection = 'column'; mid.style.gap = '.35rem'; mid.style.minWidth = '0';
+      mid.append(who, bar);
+      btn.append(el('div', 'tk-rank', String(i + 1)), mid, score, mix);
+      return btn;
+    }), ...holdRows);
+  }
+
+  function drawAttention(k) {
+    const list = document.querySelector('.tk-attn');
+    if (k.status !== 'ok') {
+      if (failed(k.status)) { list.classList.remove('dash-skeleton'); list.replaceChildren(el('li', 'tk-fail', 'Gagal memuat')); }
+      else { list.classList.add('dash-skeleton'); list.replaceChildren(); }
+      return;
+    }
+    list.classList.remove('dash-skeleton');
+    const rows = k.data.filter((r) => aktif(r.nama) && ['Merah', 'Kuning'].includes(kat(r.status))).sort((a, b) => rank[kat(a.status)] - rank[kat(b.status)] || (a.capaian_pct ?? 0) - (b.capaian_pct ?? 0));
+    if (!rows.length) { list.replaceChildren(el('li', 'tk-empty', 'Tidak ada KPI merah atau kuning bulan ini.')); return; }
+    list.replaceChildren(...rows.map((r) => {
+      const st = kat(r.status);
+      const li = el('li');
+      const kk = el('div', 'k', r.kpi);
+      const sub = el('small');
+      const link = el('button', 'tk-link', r.nama); link.type = 'button'; link.addEventListener('click', () => pick(r.nama));
+      sub.append(link, ` · aktual ${fmtVal(r.aktual, r.satuan)} dari target ${fmtVal(r.target_bulan_ini, r.satuan)}`);
+      kk.append(sub);
+      const p = el('div', 'p s-' + st);
+      p.append(mark(el('b', null, r.capaian_pct == null ? '—' : nf1.format(r.capaian_pct) + '%'), 'kpi', 'capaian_pct', where({ no: r.no })), el('small', null, st));
+      li.append(el('i', 'tk-dot s-' + st), kk, p);
+      return li;
+    }));
+  }
+
+  function sparkline(box, pts, satuan) {
+    if (!pts.length) { box.append(el('span', 'cap', 'Belum ada isian mingguan')); return; }
+    const c = brand();
+    const W = Math.max(160, box.clientWidth || 240), H = 48, pad = 5;
+    const x = pts.length > 1 ? d3.scaleUtc(d3.extent(pts, (p) => p.t), [pad, W - pad - 2]) : () => W / 2;
+    const [lo, hi] = d3.extent(pts, (p) => p.v);
+    const base = Math.min(0, lo);
+    const y = d3.scaleLinear([base, hi === lo ? hi + 1 : hi], [H - pad, pad + 2]);
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+    const gid = 'g' + Math.random().toString(36).slice(2, 8);
+    const grad = svg.append('defs').append('linearGradient').attr('id', gid).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
+    [[0, .26], [.25, .16], [.5, .08], [.75, .03], [1, 0]].forEach(([o, a]) => grad.append('stop').attr('offset', o).attr('style', `stop-color:${c};stop-opacity:${a}`));
+    svg.append('line').attr('x1', pad).attr('x2', W - pad).attr('y1', y(base)).attr('y2', y(base)).attr('stroke', 'var(--cds-chart-grid)');
+    if (pts.length > 1) {
+      svg.append('path').attr('d', d3.area((p) => x(p.t), y(base), (p) => y(p.v))(pts)).attr('fill', `url(#${gid})`);
+      svg.append('path').attr('d', d3.line((p) => x(p.t), (p) => y(p.v))(pts)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    }
+    svg.selectAll('circle').data(pts).join('circle').attr('cx', (p) => x(p.t)).attr('cy', (p) => y(p.v)).attr('r', (p, i) => (i === pts.length - 1 ? 3.5 : 2)).attr('fill', c);
+    const tip = el('div', 'tk-tip'); tip.hidden = true; box.append(tip);
+    svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'transparent')
+      .on('mousemove', (event) => {
+        const [mx] = d3.pointer(event);
+        const p = d3.least(pts, (q) => Math.abs(x(q.t) - mx));
+        tip.replaceChildren(el('div', 'd', 'Minggu ' + fmtDate(p.iso)), el('div', null, fmtVal(p.v, satuan)));
+        tip.hidden = false;
+        const bw = box.clientWidth, tw = tip.offsetWidth;
+        tip.style.left = Math.max(0, Math.min(bw - tw, (x(p.t) / W) * bw - tw / 2)) + 'px';
+        tip.style.top = '-' + (tip.offsetHeight + 4) + 'px';
+      })
+      .on('mouseleave', () => { tip.hidden = true; });
+  }
+
+  function drawDetail(k, w) {
+    const who = orang();
+    document.querySelector('.tk-detail-title').textContent = 'KPI ' + who;
+    const cards = document.querySelector('.tk-cards');
+    if (k.status !== 'ok') { cards.replaceChildren(el('div', failed(k.status) ? 'tk-fail' : 'dash-skeleton', failed(k.status) ? 'Gagal memuat' : '')); return; }
+    const weekly = w.status === 'ok' ? w.data.filter((r) => r.nama === who) : [];
+    const rows = k.data.filter((r) => r.nama === who).sort((a, b) => rank[kat(a.status)] - rank[kat(b.status)] || (a.capaian_pct ?? 0) - (b.capaian_pct ?? 0) || a.no - b.no);
+    const sparks = [];
+    cards.replaceChildren(...rows.map((r) => {
+      const st = kat(r.status);
+      const card = el('article', 'tk-card'); card.id = 'kpi-' + r.no;
+      const w1 = where({ no: r.no });
+      const top = el('div', 'top');
+      top.append(el('h3', null, r.kpi), mark(el('span', 'tk-pill s-' + st, r.status || '—'), 'kpi', 'status', w1));
+      const big = mark(el('div', 'big s-' + st, r.capaian_pct == null ? '—' : nf1.format(r.capaian_pct) + '%'), 'kpi', 'capaian_pct', w1);
+      const prog = el('div', 'tk-progress'); const fill = el('span');
+      fill.style.width = r.capaian_pct == null ? '0' : Math.min(100, r.capaian_pct) + '%'; fill.style.background = color[st]; prog.append(fill);
+      card.append(top, big, prog);
+      if (r.capaian_pct == null) card.append(el('div', 'nodata', r.target == null ? 'Target belum ditetapkan' : 'Belum ada data bulan ini'));
+      const facts = el('div', 'tk-facts');
+      const fact = (label, b) => { const d = el('div'); d.append(el('span', null, label), b); return d; };
+      facts.append(
+        fact('Aktual', mark(el('b', null, fmtVal(r.aktual, r.satuan)), 'kpi', 'aktual', w1)),
+        fact('Target bulan ini', mark(el('b', null, fmtVal(r.target_bulan_ini, r.satuan)), 'kpi', 'target_bulan_ini', w1)),
+        fact('Minggu terisi', mark(el('b', null, r.minggu_ada_data == null ? '—' : nf0.format(r.minggu_ada_data)), 'kpi', 'minggu_ada_data', w1)),
+      );
+      card.append(facts);
+      const pts = weekly.filter((x) => matches(r.kpi, x.kolom)).map((x) => ({ t: new Date(x.tanggal + 'T00:00:00Z'), iso: x.tanggal, v: x.nilai })).sort((a, b) => a.t - b.t);
+      const kolomAda = weekly.some((x) => matches(r.kpi, x.kolom));
+      if (kolomAda || w.status === 'ok') { const sp = el('div', 'tk-spark'); card.append(sp); sparks.push([sp, pts, r.satuan]); }
+      return card;
+    }));
+    sparks.forEach(([sp, pts, satuan]) => sparkline(sp, pts, satuan));
+
+    const thead = document.querySelector('.tk-table thead tr');
+    const tbody = document.querySelector('.tk-table tbody');
+    if (w.status !== 'ok' || !weekly.length) {
+      thead.replaceChildren(); const tr = el('tr'); const td = el('td', 'tk-empty', w.status === 'ok' || failed(w.status) ? 'Belum ada isian mingguan di sheet input.' : '');
+      if (!(w.status === 'ok' || failed(w.status))) td.className = 'dash-skeleton';
+      tr.append(td); tbody.replaceChildren(tr); return;
+    }
+    const cols = [...new Map(weekly.slice().sort((a, b) => a.urutan - b.urutan).map((x) => [x.kolom, x.urutan])).keys()];
+    const unit = (c) => { const r = rows.find((x) => matches(x.kpi, c)); return r ? r.satuan : ''; };
+    thead.replaceChildren(el('th', null, 'Minggu'), ...cols.map((c) => el('th', null, c)));
+    const weeks = [...new Set(weekly.map((x) => x.tanggal))].sort().reverse();
+    tbody.replaceChildren(...weeks.map((t) => {
+      const tr = el('tr'); tr.append(el('td', null, fmtDate(t)));
+      cols.forEach((c) => { const v = weekly.find((x) => x.tanggal === t && x.kolom === c); tr.append(el('td', v ? null : 'blank', v ? fmtVal(v.nilai, unit(c)) : '—')); });
+      return tr;
+    }));
+  }
+
+  // Periods: "Oktober 2026" style names, newest first. The default is the month the spreadsheet
+  // has selected now, i.e. the one refreshed most recently.
+  const urut = (p) => { const m = String(p).match(/^(\S+)\s+(\d{4})$/); return m ? Number(m[2]) * 12 + BULAN.indexOf(m[1]) : -1; };
+  const daftarPeriode = (rows) => [...new Set(rows.map((r) => r.periode))].sort((a, b) => urut(b) - urut(a));
+  const periodeAktif = (rows) => rows.reduce((best, r) => (!best || (r.diperbarui || '') > (best.diperbarui || '') ? r : best), null)?.periode;
+  const selPeriode = document.getElementById('tk-periode');
+  selPeriode.addEventListener('change', () => dash.setParams({ periode: selPeriode.value }));
+  const hanya = (d, keep) => (d.status === 'ok' ? { ...d, data: d.data.filter(keep) } : d);
+
+  dash.onData(() => {
+    const kAll = dash.data('kpi');
+    const all = kAll.status === 'ok' ? kAll.data : [];
+    const list = daftarPeriode(all);
+    const berjalan = periodeAktif(all);
+    const p = dash.params().periode;
+    CUR = list.includes(p) ? p : berjalan || list[0] || '';
+    BERJALAN = CUR === berjalan;
+    if (kAll.status === 'ok' && (selPeriode.options.length !== list.length || [...selPeriode.options].some((o, i) => o.value !== list[i]))) {
+      selPeriode.replaceChildren(...list.map((x) => new Option(x === berjalan ? x + ' (berjalan)' : x, x)));
+    }
+    selPeriode.value = CUR;
+    const k = hanya(kAll, (r) => r.periode === CUR);
+    const w = hanya(dash.data('mingguan'), (r) => r.bulan === CUR);
+    const sk = hanya(dash.data('skor'), (r) => r.periode === CUR);
+    const rs = hanya(dash.data('ringkasan'), (r) => r.periode === CUR);
+    const who = orang();
+    document.getElementById('tk-tim').hidden = !!who;
+    document.getElementById('tk-detail').hidden = !who;
+    drawHeader(k, sk);
+    drawTake(k, sk, rs);
+    drawTiles(rs);
+    if (who) drawDetail(k, w);
+    else { drawPeople(sk, rs); drawAttention(k); }
+  });
+
+  const named = document.getElementById(location.hash.slice(1));
+  if (named) setTimeout(() => named.scrollIntoView(), 0);
+})();
+</script>
+
+<div class="kunci-bar"><button type="button" id="gb-keluar">Kunci dashboard di perangkat ini</button></div>
+</main>
+<script>
+(() => {
+  const SLUG = 'atasan';
+  const SIMPAN = 'kpi-pw-' + SLUG;
+  const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  const store = { get: () => { try { return localStorage.getItem(SIMPAN); } catch { return null; } },
+                  set: (v) => { try { localStorage.setItem(SIMPAN, v); } catch {} },
+                  del: () => { try { localStorage.removeItem(SIMPAN); } catch {} } };
+  const form = document.getElementById('gb-form');
+  const pw = document.getElementById('gb-pw');
+  const btn = document.getElementById('gb-btn');
+  const pesan = document.getElementById('gb-pesan');
+
+  async function buka(password) {
+    const res = await fetch('../data/' + SLUG + '.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('data');
+    const box = await res.json();
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(box.salt), iterations: box.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    let plain;
+    try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.ct)); }
+    catch { throw new Error('password'); }
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  async function masuk(password, ingat) {
+    btn.disabled = true; btn.textContent = 'Membuka…'; pesan.textContent = '';
+    try {
+      const data = await buka(password);
+      if (ingat) store.set(password); else store.del();
+      document.getElementById('gerbang').hidden = true;
+      document.getElementById('app').hidden = false;
+      dash._load(data);
+      const named = document.getElementById(location.hash.slice(1));
+      if (named) named.scrollIntoView();
+    } catch (e) {
+      store.del();
+      pesan.textContent = e.message === 'password' ? 'Password salah. Coba lagi.' : 'Data belum bisa dimuat. Coba muat ulang halaman.';
+      btn.disabled = false; btn.textContent = 'Buka dashboard';
+      pw.select();
+    }
+  }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); masuk(pw.value, document.getElementById('gb-ingat').checked); });
+  document.getElementById('gb-keluar').addEventListener('click', () => { store.del(); location.reload(); });
+  const tersimpan = store.get();
+  if (tersimpan) masuk(tersimpan, true);
+})();
+</script>
+</body>
+</html>

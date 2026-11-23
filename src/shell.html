@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>%%TITLE%%</title>
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<style>
+/* Theme tokens the dashboard pages were written against, light and dark. */
+:root {
+  --font-anthropic-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-anthropic-serif: "Source Serif 4", Georgia, serif;
+  --cds-gap-xs: .375rem; --cds-gap-sm: .625rem; --cds-gap-md: 1rem; --cds-gap-lg: 1.5rem;
+  --cds-pad-xs: .3rem; --cds-pad-sm: .5rem; --cds-pad-md: .85rem; --cds-pad-lg: 1.15rem; --cds-pad-xl: 1.75rem;
+  --cds-radius: 8px;
+  --cds-font-size-caption: .8125rem; --cds-font-size-body: .9375rem; --cds-font-size-title: 1.5rem;
+  --cds-font-weight-medium: 600;
+  --cds-dur-slow: 320ms; --cds-ease-out: cubic-bezier(.2, .7, .2, 1);
+  --color-bg: #f7f3ef; --color-fg: #23181a; --color-fg-muted: #6f6265;
+  --color-panel: #ffffff; --color-border-line: #e8dfda;
+  --color-ok: #2f7d4f; --color-warn: #b07a12; --color-bad: #b4282e;
+  --cds-chart-grid: #ece4df; --cds-chart-muted: #b9adaa;
+  --cds-surface-popover: #ffffff; --cds-border: #e2d8d3; --cds-text-secondary: #6f6265;
+  --cds-shadow-popover: 0 6px 20px rgba(35, 24, 26, .12);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #171213; --color-fg: #f2ebe8; --color-fg-muted: #a8999a;
+    --color-panel: #221b1c; --color-border-line: #382d2e;
+    --color-ok: #5cbf86; --color-warn: #e0ac45; --color-bad: #ef6b6f;
+    --cds-chart-grid: #342a2b; --cds-chart-muted: #6c5f60;
+    --cds-surface-popover: #2a2223; --cds-border: #3d3233; --cds-text-secondary: #a8999a;
+    --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); -webkit-font-smoothing: antialiased; }
+#app { max-width: 1180px; margin: 0 auto; padding: 16px 16px 32px; }
+button { font: inherit; }
+.dash-skeleton { color: transparent !important; border-radius: 6px; background: linear-gradient(90deg, rgba(127,127,127,.12), rgba(127,127,127,.22), rgba(127,127,127,.12)) 0 0 / 200% 100%; animation: sk 1.4s linear infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+.kunci-bar { display: flex; justify-content: center; margin-top: .25rem; }
+.kunci-bar button { background: none; border: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); text-decoration: underline; cursor: pointer; }
+
+/* Lock screen */
+#gerbang { min-height: 100vh; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 1.5px) 0 0 / 18px 18px,
+              radial-gradient(120% 140% at 100% 0%, #a3162f 0%, #7a0b1e 55%, #4f0613 100%); }
+.gb-card { width: min(100%, 24rem); background: rgba(255,255,255,.97); color: #2a1216; border-radius: 16px; padding: 2rem 1.75rem 1.5rem; box-shadow: 0 24px 60px rgba(40, 0, 8, .45); display: flex; flex-direction: column; gap: .9rem; color-scheme: light; }
+.gb-card img { width: 170px; height: auto; display: block; }
+.gb-eyebrow { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: #9a6b12; font-weight: 600; margin-top: .4rem; }
+.gb-card h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.85rem; line-height: 1.1; margin: 0; }
+.gb-card p { margin: 0; font-size: .875rem; color: #6f5a5d; line-height: 1.5; }
+.gb-card label { font-size: .8125rem; font-weight: 600; display: flex; flex-direction: column; gap: .35rem; }
+.gb-card input[type=password] { font: inherit; font-size: 1rem; padding: .7rem .8rem; border-radius: 10px; border: 1px solid #d9c9c6; background: #fff; color: #2a1216; }
+.gb-card input[type=password]:focus { outline: 2px solid #d9b45a; outline-offset: 1px; border-color: #7a0b1e; }
+.gb-ingat { flex-direction: row !important; align-items: center; font-weight: 400 !important; color: #6f5a5d; }
+.gb-card button { font-weight: 600; font-size: 1rem; padding: .75rem; border: 0; border-radius: 10px; background: #7a0b1e; color: #fff; cursor: pointer; }
+.gb-card button:hover { background: #8c1026; }
+.gb-card button:disabled { opacity: .7; cursor: progress; }
+.gb-pesan { min-height: 1.2em; font-size: .8125rem !important; color: #b4282e !important; }
+</style>
+<script>
+// Minimal stand-in for the dashboard runtime the pages were written for: named data sources,
+// derived calcs, URL params and an onData hook. Data arrives decrypted from data/<slug>.json.
+window.dash = (() => {
+  const sources = {};
+  const calcs = [];
+  const listeners = [];
+  const params = Object.fromEntries(new URLSearchParams(location.search));
+  const fire = () => listeners.forEach((fn) => fn());
+  const sync = () => history.replaceState(null, '', '?' + new URLSearchParams(params) + location.hash);
+  return {
+    calc(name, def) { calcs.push([name, def]); },
+    data(name) { return sources[name] || { status: 'loading', data: [] }; },
+    onData(fn) { listeners.push(fn); if (sources.kpi) fn(); },
+    params() { return { ...params }; },
+    setParams(p) {
+      Object.entries(p).forEach(([k, v]) => { if (v == null || v === '') delete params[k]; else params[k] = String(v); });
+      sync(); fire();
+    },
+    setLink(id) { history.replaceState(null, '', location.pathname + location.search + (id ? '#' + id : '')); },
+    _load(d) {
+      sources.kpi = { status: 'ok', data: d.kpi };
+      const m = d.mingguan;
+      const rows = Array.isArray(m) ? m : m.rows;
+      sources.mingguan = rows.length ? { status: 'ok', data: rows, columns: Array.isArray(m) ? undefined : m.columns } : { status: 'missing', data: [] };
+      calcs.forEach(([name, def]) => {
+        sources[name] = { status: 'ok', data: def.fn(...def.inputs.map((i) => sources[i].data)) };
+      });
+      fire();
+    },
+  };
+})();
+</script>
+</head>
+<body>
+<div id="gerbang">
+  <form class="gb-card" id="gb-form" autocomplete="on">
+    <img src="../logo.png" alt="Adhiya Travel">
+    <div class="gb-eyebrow">Dashboard KPI Marketing</div>
+    <h1>%%NAMA%%</h1>
+    <p>%%PESAN%%</p>
+    <input type="text" name="username" value="%%SLUG%%" autocomplete="username" hidden>
+    <label>Password
+      <input type="password" id="gb-pw" autocomplete="current-password" required autofocus>
+    </label>
+    <label class="gb-ingat"><input type="checkbox" id="gb-ingat" checked> Ingat di perangkat ini</label>
+    <button type="submit" id="gb-btn">Buka dashboard</button>
+    <p class="gb-pesan" id="gb-pesan" role="alert"></p>
+  </form>
+</div>
+<main id="app" hidden>
+%%BODY%%
+<div class="kunci-bar"><button type="button" id="gb-keluar">Kunci dashboard di perangkat ini</button></div>
+</main>
+<script>
+(() => {
+  const SLUG = '%%SLUG%%';
+  const SIMPAN = 'kpi-pw-' + SLUG;
+  const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  const store = { get: () => { try { return localStorage.getItem(SIMPAN); } catch { return null; } },
+                  set: (v) => { try { localStorage.setItem(SIMPAN, v); } catch {} },
+                  del: () => { try { localStorage.removeItem(SIMPAN); } catch {} } };
+  const form = document.getElementById('gb-form');
+  const pw = document.getElementById('gb-pw');
+  const btn = document.getElementById('gb-btn');
+  const pesan = document.getElementById('gb-pesan');
+
+  async function buka(password) {
+    const res = await fetch('../data/' + SLUG + '.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('data');
+    const box = await res.json();
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(box.salt), iterations: box.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    let plain;
+    try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.ct)); }
+    catch { throw new Error('password'); }
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  async function masuk(password, ingat) {
+    btn.disabled = true; btn.textContent = 'Membuka…'; pesan.textContent = '';
+    try {
+      const data = await buka(password);
+      if (ingat) store.set(password); else store.del();
+      document.getElementById('gerbang').hidden = true;
+      document.getElementById('app').hidden = false;
+      dash._load(data);
+      const named = document.getElementById(location.hash.slice(1));
+      if (named) named.scrollIntoView();
+    } catch (e) {
+      store.del();
+      pesan.textContent = e.message === 'password' ? 'Password salah. Coba lagi.' : 'Data belum bisa dimuat. Coba muat ulang halaman.';
+      btn.disabled = false; btn.textContent = 'Buka dashboard';
+      pw.select();
+    }
+  }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); masuk(pw.value, document.getElementById('gb-ingat').checked); });
+  document.getElementById('gb-keluar').addEventListener('click', () => { store.del(); location.reload(); });
+  const tersimpan = store.get();
+  if (tersimpan) masuk(tersimpan, true);
+})();
+</script>
+</body>
+</html>

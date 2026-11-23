@@ -1,0 +1,15 @@
+{
+  "spreadsheetId": "1u1CqQyNHF1zqhx3f1y4WSPyG8XsrqEJd_91girY6Pmw",
+  "atasan": { "slug": "atasan", "judul": "Dashboard KPI Tim Marketing" },
+  "nonaktif": ["Nindy"],
+  "people": [
+    { "nama": "Nabila", "slug": "nabila" },
+    { "nama": "Arie", "slug": "arie" },
+    { "nama": "Ilham", "slug": "ilham" },
+    { "nama": "Bang Ikal", "slug": "bang-ikal" },
+    { "nama": "Difa", "slug": "difa" },
+    { "nama": "Rohmatul", "slug": "rohmatul" },
+    { "nama": "Kang Mirza", "slug": "kang-mirza" },
+    { "nama": "Nindy", "slug": "nindy" }
+  ]
+}
